@@ -2,10 +2,10 @@
 
 ## Main Idea of Your Solution
   1. **IMPORTANT** : Basic rules are Same as Project 1, therefore I will focus on the differences from Project1 (For more details, refer to Project 1)
-  2. In *declaration statement*, store(save) **the values of array variable id**, **the size(number) of each dimension of array**
-  3. After storing, assign real size of each dimension of id which is array variable to size\[\]\[\]
+  2. In **declaration statement**, store(save) **the values of array variable id**, **the size(number) of each dimension of array**
+  3. After storing, assign real size of each dimension of id which is array variable to *size\[\]\[\]*
     * For example, a\[10\]\[20\]; -> id\[n\] = "a", size\[n\]\[0\] = 80, size\[n\]\[1\]
-  4. In *L* production, store the first array id's index and the number of current temp variable to use in declaration statement later
+  4. In **L** production, store the first array id's index and the number of current temp variable to use in declaration statement later
 
 ## Code Description
 * **Assignment.l**:
@@ -14,15 +14,15 @@
 
 * **Assignment.y**:
   - **Declarations**
-	+ ic : id\[\] counter
-	+ sc : (t)size\[\] counter
-	+ cur : index of current array id
-	+ curd : dimension of current array id
-	+ d\_c : temp variable which contains total offset of array id in declaration statement
-	+ d\_id : index of array id in declaration statement
-	+ id\[\] : array id storage
-	+ tsize\[\] : temp size storage of each dimension of each array id / 1st dimension size stored in tsize\[0\]
-	+ size\[\]\[\] : aggregate array size storage of each dimension of each array id / highest dimension size stored in size\[n\]\[0\]
+	+ **ic** : id\[\] counter
+	+ **sc** : (t)size\[\] counter
+	+ **cur** : index of current array id
+	+ **curd** : dimension of current array id
+	+ **d\_c** : temp variable which contains total offset of array id in declaration statement
+	+ **d\_id** : index of array id in declaration statement
+	+ **id\[\]** : array id storage
+	+ **tsize\[\]** : temp size storage of each dimension of each array id / 1st dimension size stored in tsize\[0\]
+	+ **size\[\]\[\]** : aggregate array size storage of each dimension of each array id / highest dimension size stored in **size\[n\]\[0\]**
 
 	* New token : **TYPE** / New non-terminal : **L** which is casted to string type
 
@@ -31,7 +31,7 @@
 	+ **decl** : Call **assign(TYPE)**
 	+ **lcon** : Store array id and temp size
 	+ **asgns** : Assignment statement consists of assignment expression
-	+ **asgn** : Print assignment expression using d\_id and d\_c
+	+ **asgn** : Print assignment expression using **d\_id** and **d\_c**
 	+ **E**
 	  1. **asgn** : Do nothing
 	  2. **L** : Similar to above productions such as **E + E**
@@ -41,8 +41,8 @@
 
   - **Auxiliary functions**
     + **assign(TYPE)**
-	  1. Set **len** according to TYPE
-	  2. Store **len** in size\[ic\]\[0\]
+	  1. Set **len** according to **TYPE**
+	  2. Store **len** in **size\[ic\]\[0\]**
 	  3. For each dimension, current dimension size = previous dimension size * current dimension length
 	  4. increment **ic** and reset **sc**
 	+ **printL(E)**
