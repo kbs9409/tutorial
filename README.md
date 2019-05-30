@@ -1,60 +1,68 @@
-# 20131079 Compiler Project 1
+# 20131079 Compiler Project 2
 
 ## Main Idea of Your Solution
-1. Treat **token(ID, NUM)** like a **STRING** to handle *C-style identifiers*!
-2. Whenever expression is reduced, make new temp variables and duplicate them to **top of the stack($$)**
-3. Print the result(3-address code) using temp variables
+  1. **IMPORTANT** : Basic rules are Same as Project 1, therefore I will focus on the differences from Project1 (For more details, refer to Project 1)
+  2. In *declaration statement*, store(save) **the values of array variable id**, **the size(number) of each dimension of array**
+  3. After storing, assign real size of each dimension of id which is array variable to size\[\]\[\]
+    * For example, a\[10\]\[20\]; -> id\[n\] = "a", size\[n\]\[0\] = 80, size\[n\]\[1\]
+  4. In *L* production, store the first array id's index and the number of current temp variable to use in declaration statement later
 
 ## Code Description
 * **Assignment.l**:
-  1. Ignore white-space (' ', '\t').
-  2. When the token is *C-style identifier*, return ID and set **yylval.str** to token-value using **strdup()** because we treat it as a string. Note that since we use strdup(), we must deallocate tokens later due to memory leak.
-  3. Likely, when the token is number, return NUM and set **yylval.str**. Note that it is a string, not an integer.
-  4. Otherwise, Just deliver characters to *yacc*.
+  1. Unlike project 1, '\n' is ignored and ';' represents the end of the statement, instead.
+  2. deliever **int**, **char**, **float**, **double** as **TYPE** token to **yacc**.
 
 * **Assignment.y**:
   - **Declarations**
-	+ Declare counter(to number temp variables) and buffer(to assign temp varialbes as a string).
-	+ **%union**: just one variable to treat as a string.
-	+ All terminals and non-terminals are string type.
-	+ Declare associativity and precedence to handle ambiguity.
+	+ ic : id\[\] counter
+	+ sc : (t)size\[\] counter
+	+ cur : index of current array id
+	+ curd : dimension of current array id
+	+ d\_c : temp variable which contains total offset of array id in declaration statement
+	+ d\_id : index of array id in declaration statement
+	+ id\[\] : array id storage
+	+ tsize\[\] : temp size storage of each dimension of each array id / 1st dimension size stored in tsize\[0\]
+	+ size\[\]\[\] : aggregate array size storage of each dimension of each array id / highest dimension size stored in size\[n\]\[0\]
+
+	* New token : **TYPE** / New non-terminal : **L** which is casted to string type
 
   - **Grammar rules**
-	+ **S0**: To handle multiple statements(inputs)
-	+ **S**:
-	  1. **ID = E \n**: Print "ID = E" where E is presented as a temp variable.
-	  2. **ID = E \n** and **E \n**: Deallocate token(ID) and temp variables(E).
-	  3. **\n**: Just print new line to format output
-	+ **E**:
-	  1. **+** to **/**: Print the result of allocation of new temp variable to production head using corresponding production rule(reduction). After that, write temp variable to buffer using **sprintf()** and duplicate to top of the stack($$) using **strdup()**. Finally, deallocate already used expressions($1, $3).
-      * Likely in token case, since we use strdup(), we must deallocate useless expressions after using them due to memory leak.
-	  2. **UMINUS**: Similar to above using "%prec UMINUS".
-	  3. **( E )**, **ID**, **NUM**: copy the value(string)
+	+ **S** : Statement consists of declaration and assignment statement
+	+ **decl** : Call **assign(TYPE)**
+	+ **lcon** : Store array id and temp size
+	+ **asgns** : Assignment statement consists of assignment expression
+	+ **asgn** : Print assignment expression using d\_id and d\_c
+	+ **E**
+	  1. **asgn** : Do nothing
+	  2. **L** : Similar to above productions such as **E + E**
+	+ **L**
+	  1. **L \[ E \]** : Call **printL(E)** and store current temp variable
+	  2. **ID \[ E \]** : Call **printID(ID, E)** and store current temp variable
 
   - **Auxiliary functions**
-    + Not changed (default functions)
+    + **assign(TYPE)**
+	  1. Set **len** according to TYPE
+	  2. Store **len** in size\[ic\]\[0\]
+	  3. For each dimension, current dimension size = previous dimension size * current dimension length
+	  4. increment **ic** and reset **sc**
+	+ **printL(E)**
+	  1. Print temp variables about current array index
+	  2. If printing is finished and current step is declaration statement, set **d\_c** and **d\_id** to use at declaration statement
+	  3. Set **buf** as temp variable
+	+ **printID(ID, E)**
+	  1. Similar to **printL()**
+	  2. Before print, find current array id and its highest dimension
 
 ## Detailed Algorithm
 * The algorithm is already described in above.
 
 * To sum up briefly,
-  1. *Lex* tokenize the input and deliver tokens to *yacc* as a string even if token is number
-  2. After reduction, make new temp variable produced by grammar rule and duplicate it to top of the stack($$)
-  3. Print all the reduction result and assignment result using temp variables
-  4. Finally, deallocate useless expressions whenever they are used in production
+  1. Basic rules are same as Project 1
+  2. Ignore '\n' and use ';' as a delimiter, instead
+  3. Use some counters and storages(arrays) to store array id, size, and dimension
+  4. Calculate each dimension size of each array id and store them
+  5. Using this size storage, generate temp variables to make 3-address code
 
 ## anything else...
-Someone may be unclear because of *strdup()* and *free()*.
-Actually, I did too very much!
-
-First, the reason why I use these functions is that I treat tokens as a **string**.
-Because we must handle ID as a *C-style identifiers*, not just a simple character.
-Also, we don't need to handle NUM as a integer because we don't do any mathematical calculation using number.
-We just generate 3-address code using tokens and therefore we can treat *NUM* as a **string**.
-However, string operations are little tricky in C because it is not primitive data type like char or int.
-I use *strdup()* function to duplicate the value of *yytext* to *yylval.str*, and the value of buffer(temp variable) to top of the stack(**$$**).
-Because *strcpy* doesn't allocate new memory and therefore make **segmentation fault** or **syntax error** in *yacc*.
-Since *strdup()* dynamically allocate new memory, we must deallocate the memory when we don't need to store them anymore.
-So I call *free()* function in some grammar rules to do that.
 
 * If you have any question, contact me (kbs9409@unist.ac.kr)
